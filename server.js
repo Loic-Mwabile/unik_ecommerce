@@ -36,12 +36,15 @@ app.get('/api/user/profile', authenticateToken, (req, res) => {
 });
 
 // Product routes
-app.get('/api/products', (req, res) => {
+app.get('/api/products', authenticateToken, (req, res) => {
+    console.log('Fetching products from database...');
     db.all('SELECT * FROM products', [], (err, rows) => {
         if (err) {
+            console.error('Database error:', err);
             res.status(500).json({ error: err.message });
             return;
         }
+        console.log('Products found:', rows);
         res.json(rows);
     });
 });
@@ -77,7 +80,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.get('/products', (req, res) => {
+app.get('/products', authenticateToken, (req, res) => {
     res.sendFile(path.join(__dirname, 'products.html'));
 });
 
@@ -114,6 +117,42 @@ db.run(`CREATE TABLE IF NOT EXISTS users (
         console.error('Error creating users table:', err);
     } else {
         console.log('Users table created or already exists');
+    }
+});
+
+// Create products table if it doesn't exist
+db.run(`CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    price REAL NOT NULL,
+    image TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)`, (err) => {
+    if (err) {
+        console.error('Error creating products table:', err);
+    } else {
+        console.log('Products table created or already exists');
+        // Insert some sample products if the table is empty
+        db.get('SELECT COUNT(*) as count FROM products', [], (err, row) => {
+            if (err) {
+                console.error('Error checking products count:', err);
+                return;
+            }
+            if (row.count === 0) {
+                const sampleProducts = [
+                    ['Product 1', 'Description for product 1', 19.99, 'assets/placeholder.jpg'],
+                    ['Product 2', 'Description for product 2', 29.99, 'assets/placeholder.jpg'],
+                    ['Product 3', 'Description for product 3', 39.99, 'assets/placeholder.jpg']
+                ];
+                const stmt = db.prepare('INSERT INTO products (name, description, price, image) VALUES (?, ?, ?, ?)');
+                sampleProducts.forEach(product => {
+                    stmt.run(product);
+                });
+                stmt.finalize();
+                console.log('Sample products inserted');
+            }
+        });
     }
 });
 

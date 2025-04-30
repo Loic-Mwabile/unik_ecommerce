@@ -241,6 +241,7 @@
                 if (response.ok) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
+                    console.log('Token stored:', data.token);
                     window.location.href = 'products.html';
                 } else {
                     document.getElementById('loginError').textContent = data.error || 'Login failed';

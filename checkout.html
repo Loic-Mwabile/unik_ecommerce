@@ -20,7 +20,18 @@
         <li><a href="index.html">Home</a></li>
         <li><a href="products.html">Products</a></li>
         <li><a href="cart.html">Cart</a></li>
+        <li><a href="checkout.html">Checkout</a></li>
       </ul>
+      <div class="auth-menu">
+        <div id="userInfo" class="user-info" style="display: none;">
+          <div class="user-avatar" id="userAvatar"></div>
+          <span id="userName"></span>
+          <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+        <div id="authButtons" class="auth-buttons">
+          <a href="auth.html" class="login-btn">Login</a>
+        </div>
+      </div>
     </nav>
   </header>
 
@@ -42,5 +53,31 @@
   </main>
 
   <script src="js/checkout.js"></script>
+  <script>
+    // Vérifier l'état de connexion au chargement de la page
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const token = localStorage.getItem('token');
+      
+      if (user && token) {
+        document.getElementById('userInfo').style.display = 'flex';
+        document.getElementById('authButtons').style.display = 'none';
+        document.getElementById('userName').textContent = user.username;
+        document.getElementById('userAvatar').textContent = user.username.charAt(0).toUpperCase();
+        // Pré-remplir le formulaire avec les informations de l'utilisateur
+        document.getElementById('name').value = user.username;
+        document.getElementById('email').value = user.email;
+      } else {
+        document.getElementById('userInfo').style.display = 'none';
+        document.getElementById('authButtons').style.display = 'flex';
+      }
+    });
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = 'index.html';
+    }
+  </script>
 </body>
 </html>

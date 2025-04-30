@@ -28,14 +28,26 @@ if (window.location.pathname.includes('products.html')) {
     checkAuth();
     fetchWithAuth('http://localhost:3000/api/products')
         .then(response => {
-            if (response.status === 401) {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            if (response.status === 401 || response.status === 403) {
                 window.location.href = 'auth.html';
                 return;
             }
             return response.json();
         })
         .then(products => {
+            if (!products) return; // Si la réponse est vide (redirection)
+            
+            console.log('Raw API Response:', products);
+            console.log('Type of products:', typeof products);
+            console.log('Is Array?', Array.isArray(products));
             const productsContainer = document.getElementById('products-container');
+
+            if (!Array.isArray(products)) {
+                console.error('Products is not an array:', products);
+                return;
+            }
 
             products.forEach(product => {
                 const productCard = document.createElement('div');
