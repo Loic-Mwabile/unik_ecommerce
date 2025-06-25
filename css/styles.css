@@ -15,8 +15,8 @@
   
   /* Navbar styles */
   .navbar {
-    background: #96a4b6;
-    color: white;
+    background: #b9eaeb;
+    color: rgb(255, 254, 254);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -34,7 +34,9 @@
   }
   
   .nav-links a {
-    color: white;
+    color: rgb(19, 20, 21);
+    font-size: 1.5rem;
+    font-family: 'Times New Roman', Times, serif;
     text-decoration: none;
     font-weight: 500;
   }
@@ -47,27 +49,32 @@
   .hero {
     padding: 4rem 2rem;
     text-align: center;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 1.5rem;
+    font-weight: 500;
     background: linear-gradient(to right, #e0f7fa, #ffffff);
   }
   
   .hero h1 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: 100;
   }
   
   .shop-btn {
     display: inline-block;
     margin-top: 1.5rem;
     padding: 0.75rem 1.5rem;
-    background: #2563eb;
-    color: white;
+    background: #b2e9f5;
+    color: rgb(39, 38, 38);
     text-decoration: none;
     border-radius: 5px;
     font-weight: bold;
   }
   
   .shop-btn:hover {
-    background: #1e40af;
+    background: #24bafa;
   }
   
 
@@ -78,10 +85,14 @@
   .product-section {
     padding: 2rem;
     text-align: center;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 1.5rem;
+    font-weight: 500;
   }
   
   .product-section h2 {
-    font-size: 2rem;
+    font-size: 2.5rem;
+    font-weight: 400;
     margin-bottom: 2rem;
   }
   
@@ -92,7 +103,7 @@
   }
   
   .product-card {
-    background: white;
+    background: rgb(215, 233, 240);
     border-radius: 8px;
     padding: 1rem;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -123,16 +134,17 @@
   }
   
   .product-card button {
-    background-color: #2563eb;
-    color: white;
+    background-color: #0481a0;
+    color: rgb(234, 241, 240);
     border: none;
     padding: 0.5rem 1rem;
     border-radius: 5px;
     cursor: pointer;
+    font-family:'Times New Roman', Times, serif;
   }
   
   .product-card button:hover {
-    background-color: #1e40af;
+    background-color: #18474f;
   }
   
 
@@ -141,6 +153,9 @@
   .cart-section {
     padding: 2rem;
     text-align: center;
+    font-family: 'Times New Roman', Times, serif  ;
+    font-size: 1.2rem;
+    font-weight: 50;
   }
   
   .cart-items {
