@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Register - Unik Commerce</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .auth-form input {
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .auth-form button {
+            padding: 0.8rem;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .auth-form button:hover {
+            background-color: #1e40af;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 1rem;
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .auth-tab.active {
+            border-bottom: 2px solid #2563eb;
+            color: #2563eb;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 0.5rem;
+        }
+
+        .password-requirements {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .password-requirements ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .password-requirements li {
+            margin-bottom: 0.3rem;
+            color: #666;
+        }
+
+        .password-requirements li.valid {
+            color: #22c55e;
+        }
+
+        .password-requirements li.valid::before {
+            content: "✓";
+            margin-right: 0.5rem;
+        }
+
+        .password-requirements li.invalid {
+            color: #dc2626;
+        }
+
+        .password-requirements li.invalid::before {
+            content: "✗";
+            margin-right: 0.5rem;
+        }
+
+        .password-input-container {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .password-toggle:hover {
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="assets/logo.png" alt="Unik Logo" style="height: 40px;">
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="products.html">Products</a></li>
+                <li><a href="cart.html">Cart</a></li>
+                <li><a href="checkout.html">Checkout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="auth-container">
+        <div class="auth-tabs">
+            <div class="auth-tab active" onclick="switchTab('login')">Login</div>
+            <div class="auth-tab" onclick="switchTab('register')">Register</div>
+        </div>
+
+        <form id="loginForm" class="auth-form">
+            <input type="email" id="loginEmail" placeholder="Email" required>
+            <div class="password-input-container">
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">Show</button>
+            </div>
+            <button type="submit">Login</button>
+            <div id="loginError" class="error-message"></div>
+        </form>
+
+        <form id="registerForm" class="auth-form" style="display: none;">
+            <input type="text" id="registerUsername" placeholder="Username" required>
+            <input type="email" id="registerEmail" placeholder="Email" required>
+            <div class="password-input-container">
+                <input type="password" id="registerPassword" placeholder="Password" required>
+                <button type="button" class="password-toggle" onclick="togglePassword('registerPassword')">Show</button>
+            </div>
+            <div class="password-requirements">
+                <p>Your password must contain:</p>
+                <ul>
+                    <li id="length" class="invalid">At least 8 characters</li>
+                    <li id="uppercase" class="invalid">At least one uppercase letter</li>
+                    <li id="lowercase" class="invalid">At least one lowercase letter</li>
+                    <li id="number" class="invalid">At least one number</li>
+                    <li id="special" class="invalid">At least one special character (!@#$%^&*)</li>
+                </ul>
+            </div>
+            <button type="submit">Register</button>
+            <div id="registerError" class="error-message"></div>
+        </form>
+    </main>
+
+    <script>
+        function switchTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const tabs = document.querySelectorAll('.auth-tab');
+
+            if (tab === 'login') {
+                loginForm.style.display = 'flex';
+                registerForm.style.display = 'none';
+                tabs[0].classList.add('active');
+                tabs[1].classList.remove('active');
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'flex';
+                tabs[0].classList.remove('active');
+                tabs[1].classList.add('active');
+            }
+        }
+
+        // Password validation
+        const passwordInput = document.getElementById('registerPassword');
+        const requirements = {
+            length: /.{8,}/,
+            uppercase: /[A-Z]/,
+            lowercase: /[a-z]/,
+            number: /[0-9]/,
+            special: /[!@#$%^&*]/
+        };
+
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            
+            Object.keys(requirements).forEach(key => {
+                const requirement = requirements[key];
+                const element = document.getElementById(key);
+                
+                if (requirement.test(password)) {
+                    element.classList.remove('invalid');
+                    element.classList.add('valid');
+                } else {
+                    element.classList.remove('valid');
+                    element.classList.add('invalid');
+                }
+            });
+        });
+
+        // Handle login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    console.log('Token stored:', data.token);
+                    window.location.href = 'products.html';
+                } else {
+                    document.getElementById('loginError').textContent = data.error || 'Login failed';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('loginError').textContent = 'An error occurred during login';
+            }
+        });
+
+        // Handle registration
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            // Check if all password requirements are met
+            const allRequirementsMet = Object.keys(requirements).every(key => 
+                requirements[key].test(password)
+            );
+
+            if (!allRequirementsMet) {
+                document.getElementById('registerError').textContent = 'Please meet all password requirements';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    switchTab('login');
+                    document.getElementById('loginEmail').value = email;
+                    document.getElementById('registerError').textContent = '';
+                } else {
+                    document.getElementById('registerError').textContent = data.error || 'Registration failed';
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                document.getElementById('registerError').textContent = 'An error occurred during registration';
+            }
+        });
+
+        // Password toggle function
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const toggleButton = input.nextElementSibling;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggleButton.textContent = 'Hide';
+            } else {
+                input.type = 'password';
+                toggleButton.textContent = 'Show';
+            }
+        }
+    </script>
+</body>
+</html> 

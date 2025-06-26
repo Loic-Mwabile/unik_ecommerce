@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cart - Unik Commerce</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    
+    .quantity-btn {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    
+    .quantity-btn:hover {
+      background-color: #1e40af;
+    }
+    
+    .quantity-value {
+      font-size: 16px;
+      font-weight: bold;
+      min-width: 30px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header>
+    <nav class="navbar">
+      <div class="logo">
+        <a href="index.html">
+          <img src="assets/logo.png" alt="Unik Logo" style="height: 40px;" />
+        </a>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="products.html">Products</a></li>
+        <li><a href="cart.html">Cart</a></li>
+        <li><a href="checkout.html">Checkout</a></li>
+      </ul>
+      <div class="auth-menu">
+        <div id="userInfo" class="user-info" style="display: none;">
+          <div class="user-avatar" id="userAvatar"></div>
+          <span id="userName"></span>
+          <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+        <div id="authButtons" class="auth-buttons">
+          <a href="auth.html" class="login-btn">Login</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Cart Section -->
+  <main class="cart-section">
+    <h2>Your Cart</h2>
+    <div id="cart-items" class="cart-items">
+      <!-- Cart items will be loaded here -->
+    </div>
+    <div class="cart-total">
+      Total: $<span id="cart-total-amount">0.00</span>
+    </div>
+    <a href="checkout.html" class="checkout-btn" id="checkout-btn">Proceed to Checkout</a>
+  </main>
+
+  <script src="js/main.js"></script>
+  <script>
+    // Load cart items when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      updateCartDisplay();
+    });
+
+    function updateCartDisplay() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const cartItemsContainer = document.getElementById('cart-items');
+      const cartTotalAmount = document.getElementById('cart-total-amount');
+      const checkoutBtn = document.getElementById('checkout-btn');
+      
+      let total = 0;
+      
+      if (cart.length === 0) {
+        cartItemsContainer.innerHTML = '<p>Your cart is empty</p>';
+        checkoutBtn.style.display = 'none';
+      } else {
+        cartItemsContainer.innerHTML = '';
+        cart.forEach(item => {
+          const itemTotal = item.price * item.quantity;
+          total += itemTotal;
+          
+          const cartItem = document.createElement('div');
+          cartItem.className = 'cart-item';
+          cartItem.innerHTML = `
+            <div class="cart-item-info">
+              <h3>${item.name}</h3>
+              <p>Price: $${item.price}</p>
+              <div class="quantity-controls">
+                <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
+                <span class="quantity-value">${item.quantity}</span>
+                <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
+              </div>
+              <p>Total: $${itemTotal.toFixed(2)}</p>
+            </div>
+            <button class="remove-btn" onclick="removeFromCart(${item.id})">Remove</button>
+          `;
+          cartItemsContainer.appendChild(cartItem);
+        });
+        
+        cartTotalAmount.textContent = total.toFixed(2);
+      }
+    }
+
+    function updateQuantity(productId, newQuantity) {
+      if (newQuantity < 1) {
+        removeFromCart(productId);
+        return;
+      }
+
+      const cart = JSON.parse(localStorage.getItem('cart'));
+      const itemIndex = cart.findIndex(item => item.id === productId);
+      
+      if (itemIndex !== -1) {
+        cart[itemIndex].quantity = newQuantity;
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartDisplay();
+      }
+    }
+
+    function removeFromCart(productId) {
+      const cart = JSON.parse(localStorage.getItem('cart'));
+      const updatedCart = cart.filter(item => item.id !== productId);
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+      updateCartDisplay();
+    }
+
+    // Vérifier l'état de connexion au chargement de la page
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const token = localStorage.getItem('token');
+      
+      if (user && token) {
+        document.getElementById('userInfo').style.display = 'flex';
+        document.getElementById('authButtons').style.display = 'none';
+        document.getElementById('userName').textContent = user.username;
+        document.getElementById('userAvatar').textContent = user.username.charAt(0).toUpperCase();
+      } else {
+        document.getElementById('userInfo').style.display = 'none';
+        document.getElementById('authButtons').style.display = 'flex';
+      }
+    });
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
