@@ -378,3 +378,142 @@
     background-color: #b91c1c;
   }
   
+  /* Responsive Design */
+  @media (max-width: 1200px) {
+    .navbar {
+      padding: 1rem;
+    }
+    .product-section {
+      padding: 1rem;
+    }
+  }
+  
+  @media (max-width: 900px) {
+    .nav-links {
+      gap: 1rem;
+      font-size: 1.2rem;
+    }
+    .product-section h2 {
+      font-size: 2rem;
+    }
+    .product-grid {
+      gap: 1rem;
+    }
+  }
+  
+  @media (max-width: 700px) {
+    .navbar {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 0.5rem 1rem;
+      position: relative;
+    }
+    .nav-links {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      background: #b9eaeb;
+      position: absolute;
+      top: 60px;
+      left: 0;
+      padding: 1rem 0;
+      box-shadow: 0 2px 10px #0001;
+      z-index: 2000;
+    }
+    .nav-links.active {
+      display: flex;
+    }
+    .product-section {
+      font-size: 1.1rem;
+      padding: 0.5rem;
+    }
+    .product-section h2 {
+      font-size: 1.5rem;
+    }
+    .product-grid {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+    .product-card {
+      padding: 0.5rem;
+    }
+    .cart-section {
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    .cart-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .cart-item img {
+      width: 60px;
+    }
+    .checkout-section {
+      padding: 0.5rem;
+    }
+    .checkout-form input, .checkout-form button {
+      font-size: 1rem;
+      padding: 0.5rem;
+    }
+    .hamburger {
+      display: flex !important;
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 3001;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .navbar {
+      padding: 0.3rem 0.5rem;
+    }
+    .nav-links a {
+      font-size: 1rem;
+    }
+    .product-section h2 {
+      font-size: 1.1rem;
+    }
+    .product-card h3 {
+      font-size: 1rem;
+    }
+    .product-card p, .product-card .price {
+      font-size: 0.8rem;
+    }
+    .cart-section, .checkout-section {
+      font-size: 0.95rem;
+    }
+    .checkout-form input, .checkout-form button {
+      font-size: 0.95rem;
+      padding: 0.4rem;
+    }
+    .confirmation-msg {
+      font-size: 0.95rem;
+    }
+  }
+  
+  /* Hamburger styles */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    background: #b9eaeb;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 3000;
+  }
+  .hamburger span {
+    display: block;
+    width: 28px;
+    height: 4px;
+    margin: 4px 0;
+    background: #0481a0;
+    border-radius: 2px;
+    transition: 0.3s;
+  }
+  

@@ -36,7 +36,7 @@ app.get('/api/user/profile', authenticateToken, (req, res) => {
 });
 
 // Product routes
-app.get('/api/products', authenticateToken, (req, res) => {
+app.get('/api/products', (req, res) => {
     console.log('Fetching products from database...');
     db.all('SELECT * FROM products', [], (err, rows) => {
         if (err) {
@@ -81,7 +81,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.get('/products', authenticateToken, (req, res) => {
+app.get('/products', (req, res) => {
     res.sendFile(path.join(__dirname, 'products.html'));
 });
 
