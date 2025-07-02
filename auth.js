@@ -1,12 +1,13 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./ecommerce.db', (err) => {
+const dbPath = process.env.SQLITE_PATH || './ecommerce.db';
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error opening database:', err);
-    } else {
-        console.log('Connected to SQLite database');
+        return;
     }
+    console.log('Connected to SQLite database at', dbPath);
 });
 
 // Secret key for JWT
