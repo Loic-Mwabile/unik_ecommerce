@@ -5,7 +5,7 @@ const path = require('path');
 const { authenticateToken, registerUser, loginUser } = require('./auth');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
@@ -98,11 +98,12 @@ app.get('/auth', (req, res) => {
 });
 
 // Database connection
-const db = new sqlite3.Database('./ecommerce.db', (err) => {
+const dbPath = process.env.SQLITE_PATH || './ecommerce.db';
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error connecting to database:', err);
     } else {
-        console.log('Connected to SQLite database');
+        console.log('Connected to SQLite database at', dbPath);
     }
 });
 
