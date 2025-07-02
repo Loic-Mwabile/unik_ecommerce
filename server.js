@@ -1,8 +1,9 @@
+require('dotenv').config();
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const path = require('path');
 const { authenticateToken, registerUser, loginUser } = require('./auth');
+const pool = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,41 +37,44 @@ app.get('/api/user/profile', authenticateToken, (req, res) => {
 });
 
 // Product routes
-app.get('/api/products', (req, res) => {
-    console.log('Fetching products from database...');
-    db.all('SELECT * FROM products', [], (err, rows) => {
-        if (err) {
-            console.error('Database error:', err);
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        console.log('Products found:', rows);
-        res.json(rows);
-    });
+app.get('/api/products', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM products');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Database error:', err);
+        res.status(500).json({ error: err.message, details: err });
+    }
 });
 
-app.get('/api/products/:id', (req, res) => {
+app.get('/api/products/:id', async (req, res) => {
     const id = req.params.id;
-    db.get('SELECT * FROM products WHERE id = ?', [id], (err, row) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.json(row);
-    });
+    try {
+        const result = await pool.query('SELECT * FROM products WHERE id = $1', [id]);
+        res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Protected cart operations
 app.post('/api/cart', authenticateToken, (req, res) => {
-    const { productId, quantity } = req.body;
+    // This endpoint is a placeholder; cart is managed client-side
     res.json({ message: 'Cart updated successfully' });
 });
 
 // Protected checkout
-app.post('/api/checkout', authenticateToken, (req, res) => {
+app.post('/api/checkout', authenticateToken, async (req, res) => {
     const { name, phone, email, address, payment_method, items, total } = req.body;
-    // You can add validation or saving logic here if needed
-    res.json({ success: true, message: 'Order placed successfully' });
+    try {
+        await pool.query(
+            'INSERT INTO orders (name, phone, email, address, payment_method, items, total) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [name, phone, email, address, payment_method, JSON.stringify(items), total]
+        );
+        res.json({ success: true, message: 'Order placed successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Static file serving - Must be AFTER API routes
@@ -95,67 +99,6 @@ app.get('/checkout', (req, res) => {
 
 app.get('/auth', (req, res) => {
     res.sendFile(path.join(__dirname, 'auth.html'));
-});
-
-// Database connection
-const dbPath = process.env.SQLITE_PATH || './ecommerce.db';
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Error connecting to database:', err);
-    } else {
-        console.log('Connected to SQLite database at', dbPath);
-    }
-});
-
-// Create users table if it doesn't exist
-db.run(`CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-)`, (err) => {
-    if (err) {
-        console.error('Error creating users table:', err);
-    } else {
-        console.log('Users table created or already exists');
-    }
-});
-
-// Create products table if it doesn't exist
-db.run(`CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    description TEXT,
-    price REAL NOT NULL,
-    image TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-)`, (err) => {
-    if (err) {
-        console.error('Error creating products table:', err);
-    } else {
-        console.log('Products table created or already exists');
-        // Insert some sample products if the table is empty
-        db.get('SELECT COUNT(*) as count FROM products', [], (err, row) => {
-            if (err) {
-                console.error('Error checking products count:', err);
-                return;
-            }
-            if (row.count === 0) {
-                const sampleProducts = [
-                    ['Product 1', 'Description for product 1', 19.99, 'assets/placeholder.jpg'],
-                    ['Product 2', 'Description for product 2', 29.99, 'assets/placeholder.jpg'],
-                    ['Product 3', 'Description for product 3', 39.99, 'assets/placeholder.jpg']
-                ];
-                const stmt = db.prepare('INSERT INTO products (name, description, price, image) VALUES (?, ?, ?, ?)');
-                sampleProducts.forEach(product => {
-                    stmt.run(product);
-                });
-                stmt.finalize();
-                console.log('Sample products inserted');
-            }
-        });
-    }
 });
 
 // Start the server

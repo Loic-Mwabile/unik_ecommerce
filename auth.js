@@ -1,14 +1,7 @@
+require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const sqlite3 = require('sqlite3').verbose();
-const dbPath = process.env.SQLITE_PATH || './ecommerce.db';
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Error opening database:', err);
-        return;
-    }
-    console.log('Connected to SQLite database at', dbPath);
-});
+const pool = require('./db');
 
 // Secret key for JWT
 const JWT_SECRET = 'your-secret-key'; // In production, use environment variable
@@ -74,50 +67,27 @@ const registerUser = async (req, res) => {
 
     try {
         // Check if user already exists
-        db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
-            if (err) {
-                console.error('Database error during user check:', err);
-                return res.status(500).json({ error: 'Database error during user check' });
-            }
+        const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        if (userCheck.rows.length > 0) {
+            console.log('User already exists:', email);
+            return res.status(400).json({ error: 'User already exists' });
+        }
 
-            if (user) {
-                console.log('User already exists:', email);
-                return res.status(400).json({ error: 'User already exists' });
-            }
+        // Hash password
+        console.log('Hashing password...');
+        const hashedPassword = await bcrypt.hash(password, 10);
+        console.log('Password hashed successfully');
 
-            try {
-                // Hash password
-                console.log('Hashing password...');
-                const hashedPassword = await bcrypt.hash(password, 10);
-                console.log('Password hashed successfully');
-
-                // Insert new user
-                console.log('Inserting new user...');
-                db.run(
-                    'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
-                    [username, email, hashedPassword],
-                    function(err) {
-                        if (err) {
-                            console.error('Error inserting user:', err);
-                            return res.status(500).json({ 
-                                error: 'Error creating user',
-                                details: err.message 
-                            });
-                        }
-                        console.log('User created successfully:', email);
-                        res.status(201).json({ 
-                            message: 'User created successfully',
-                            userId: this.lastID 
-                        });
-                    }
-                );
-            } catch (hashError) {
-                console.error('Error hashing password:', hashError);
-                return res.status(500).json({ 
-                    error: 'Error processing password',
-                    details: hashError.message 
-                });
-            }
+        // Insert new user
+        console.log('Inserting new user...');
+        const result = await pool.query(
+            'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id',
+            [username, email, hashedPassword]
+        );
+        console.log('User created successfully:', email);
+        res.status(201).json({ 
+            message: 'User created successfully',
+            userId: result.rows[0].id 
         });
     } catch (error) {
         console.error('Error in registration process:', error);
@@ -138,48 +108,36 @@ const loginUser = async (req, res) => {
     }
 
     try {
-        db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
-            if (err) {
-                console.error('Database error during login:', err);
-                return res.status(500).json({ error: 'Database error during login' });
-            }
-            if (!user) {
-                console.log('User not found:', email);
-                return res.status(400).json({ error: 'User not found' });
-            }
+        const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        const user = userResult.rows[0];
+        if (!user) {
+            console.log('User not found:', email);
+            return res.status(400).json({ error: 'User not found' });
+        }
 
-            try {
-                // Compare passwords
-                console.log('Comparing passwords...');
-                const validPassword = await bcrypt.compare(password, user.password);
-                if (!validPassword) {
-                    console.log('Invalid password for:', email);
-                    return res.status(400).json({ error: 'Invalid password' });
-                }
+        // Compare passwords
+        console.log('Comparing passwords...');
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) {
+            console.log('Invalid password for:', email);
+            return res.status(400).json({ error: 'Invalid password' });
+        }
 
-                // Create and send JWT token
-                console.log('Creating JWT token...');
-                const token = jwt.sign(
-                    { id: user.id, email: user.email },
-                    JWT_SECRET,
-                    { expiresIn: '24h' }
-                );
+        // Create and send JWT token
+        console.log('Creating JWT token...');
+        const token = jwt.sign(
+            { id: user.id, email: user.email },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
 
-                console.log('Login successful for:', email);
-                res.json({
-                    token,
-                    user: {
-                        id: user.id,
-                        email: user.email,
-                        username: user.username
-                    }
-                });
-            } catch (compareError) {
-                console.error('Error comparing passwords:', compareError);
-                return res.status(500).json({ 
-                    error: 'Error processing password',
-                    details: compareError.message 
-                });
+        console.log('Login successful for:', email);
+        res.json({
+            token,
+            user: {
+                id: user.id,
+                email: user.email,
+                username: user.username
             }
         });
     } catch (error) {
