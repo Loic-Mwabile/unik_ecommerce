@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const { authenticateToken, registerUser, loginUser } = require('./auth');
 const pool = require('./db');
+const { sendOrderConfirmation, sendAdminNotification } = require('./email');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -65,14 +66,42 @@ app.post('/api/cart', authenticateToken, (req, res) => {
 
 // Protected checkout
 app.post('/api/checkout', authenticateToken, async (req, res) => {
+    console.log('[CHECKOUT] Checkout endpoint hit');
     const { name, phone, email, address, payment_method, items, total } = req.body;
     try {
+        console.log('[CHECKOUT] Saving order to database');
         await pool.query(
             'INSERT INTO orders (name, phone, email, address, payment_method, items, total) VALUES ($1, $2, $3, $4, $5, $6, $7)',
             [name, phone, email, address, payment_method, JSON.stringify(items), total]
         );
-        res.json({ success: true, message: 'Order placed successfully' });
+
+        console.log('[CHECKOUT] Decreasing stock');
+        for (const item of items) {
+            await pool.query(
+                'UPDATE products SET stock = stock - 1 WHERE name = $1 AND stock > 0',
+                [item.name]
+            );
+        }
+
+        // Build order details string
+        const orderDetails = `
+Name: ${name}
+Phone: ${phone}
+Email: ${email}
+Address: ${address}
+Payment: ${payment_method}
+Items: ${items.map(i => `${i.name} x1`).join(', ')}
+Total: $${total}
+`;
+
+        console.log('[CHECKOUT] Sending emails');
+        await sendOrderConfirmation(email, orderDetails);
+        await sendAdminNotification(orderDetails);
+
+        console.log('[CHECKOUT] All done!');
+        res.json({ success: true, message: 'Order placed and emails sent!' });
     } catch (err) {
+        console.error('[CHECKOUT ERROR]', err);
         res.status(500).json({ error: err.message });
     }
 });
